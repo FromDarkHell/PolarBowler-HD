@@ -1,0 +1,44 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Build (x86 Debug)",
+            "type": "process",
+            "command": "pwsh",
+            "args": ["-NoProfile", "-Command", "cmake --preset x86 && cmake --build --preset x86-debug"],
+            "group": "build",
+            "problemMatcher": "$msCompile"
+        },
+        {
+            "label": "Deploy DLL",
+            "type": "process",
+            "dependsOn": "Build (x86 Debug)",
+            "command": "pwsh",
+            "args": [
+                "-NoProfile",
+                "-File", "${workspaceFolder}/.vscode/deploy.ps1",
+                "-DllPath", "${workspaceFolder}/build/Debug/PolarBowler-HD.dll",
+                "-GameDirectory", "C:/Games/Polar Bowler Classic"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "Deploy and Run Game",
+            "type": "process",
+            "dependsOn": "Build (x86 Debug)",
+            "command": "pwsh",
+            "args": [
+                "-NoProfile",
+                "-File", "${workspaceFolder}/.vscode/deploy.ps1",
+                "-DllPath", "${workspaceFolder}/build/Debug/PolarBowler-HD.dll",
+                "-GameDirectory", "C:/Games/Polar Bowler Classic",
+                "-Launch"
+            ],
+            "group": {
+                "kind": "build",
+                "isDefault": true
+            },
+            "problemMatcher": []
+        }
+    ]
+}

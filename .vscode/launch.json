@@ -1,0 +1,20 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Debug Game (x86)",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "C:\\Games\\Polar Bowler Classic\\Polar Bowler Classic.exe",
+            "cwd": "C:\\Games\\Polar Bowler Classic",
+            "preLaunchTask": "Deploy DLL",
+            "console": "newExternalWindow"
+        },
+        {
+            "name": "Attach to Game",
+            "type": "cppvsdbg",
+            "request": "attach",
+            "processId": "${command:pickProcess}"
+        }
+    ]
+}

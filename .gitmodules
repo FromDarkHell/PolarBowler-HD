@@ -1,0 +1,6 @@
+[submodule "vendor/HookLib"]
+	path = vendor/HookLib
+	url = https://github.com/HoShiMin/HookLib/
+[submodule "vendor/inih"]
+	path = vendor/inih
+	url = https://github.com/benhoyt/inih

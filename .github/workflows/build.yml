@@ -1,0 +1,70 @@
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: windows-2022
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install CMake
+        uses: lukka/get-cmake@latest
+
+      - name: Configure
+        run: cmake --preset x86
+
+      - name: Build
+        run: cmake --build --preset x86-release
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $packageDirectory = 'package/Plugins'
+          New-Item -ItemType Directory -Force $packageDirectory | Out-Null
+          Copy-Item build/Release/PolarBowler-HD.dll $packageDirectory
+          Compress-Archive -Path package/* -DestinationPath PolarBowler-HD.zip
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PolarBowler-HD
+          path: PolarBowler-HD.zip
+          if-no-files-found: error
+
+  release:
+    needs: build
+    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: PolarBowler-HD
+          path: release
+
+      - name: Determine release tag
+        id: tag
+        run: echo "tag=$(date +%Y.%m.%d)-${GITHUB_SHA::7}" >> "$GITHUB_OUTPUT"
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ steps.tag.outputs.tag }}
+        run: |
+          gh release create "$TAG" \
+            --repo "$GITHUB_REPOSITORY" \
+            --target "$GITHUB_SHA" \
+            --title "$TAG" \
+            --generate-notes \
+            release/PolarBowler-HD.zip
