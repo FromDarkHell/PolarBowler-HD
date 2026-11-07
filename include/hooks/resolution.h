@@ -22,21 +22,26 @@ inline BOOL WINAPI adjustWindowRectHandler(LPRECT r, DWORD style, BOOL menu)
     return adjustWindowRectHook.call(r, style, menu);
 }
 
-constexpr const char *GAME_WINDOW_CLASS = "AppWindow_Polar";
-
 inline void installResolutionHooks()
 {
     if (!g_gameWnd)
     {
         HWND window = nullptr;
-        while ((window = FindWindowExA(nullptr, window, GAME_WINDOW_CLASS, nullptr)))
+        while ((window = FindWindowExA(nullptr, window, nullptr, nullptr)))
         {
+            char className[MAX_PATH];
+            GetClassNameA(window, className, MAX_PATH);
+            if (strcmp(className, "AppWindow_Polar") != 0 && strcmp(className, "AppWindow_Golf") != 0)
+            {
+                continue;
+            }
+
             DWORD processId = 0;
             GetWindowThreadProcessId(window, &processId);
 
             if (processId == GetCurrentProcessId())
             {
-                std::cout << "[resolution] Found game window..." << std::endl;
+                std::cout << "[resolution] Found game window: " << className << std::endl;
                 g_gameWnd = window;
                 break;
             }

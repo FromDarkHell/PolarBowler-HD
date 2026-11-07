@@ -3,8 +3,14 @@
 #include "pch.h"
 #include <HookLib.h>
 #include <hooks/shared.h>
+#include <scanning/scanner.h>
 
-constexpr uintptr_t CAMERA_ADD_DROP_ADDRESS = 0x00404730;
+// Camera::addDrop wrapper, only present in Polar Bowler Classic.exe (0x00404730).
+constexpr MemorySignature CAMERA_ADD_DROP_SIGNATURE = {
+    "\x51\x8B\x54\x24\x10\x56\x8B\xF1\x8D\x4C\x24\x04\x51\x8B\x4C\x24\x14\x52\xC7\x44\x24\x0C\x00\x00\x00\x00\x8B\x06\x51\x56\xC7\x44\x24\x14\x00\x00\x00\x00\xFF\x90\xA8\x01\x00\x00",
+    "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+    44,
+};
 
 // Byte offsets into the IWTDrop COM vtable.
 enum class DropVtable : size_t
@@ -131,8 +137,14 @@ inline void **__fastcall cameraAddDropHandler(void *camera, void *edx, void **re
 
 inline void installWebDriverHooks()
 {
-    auto moduleBase = reinterpret_cast<uintptr_t>(GetModuleHandleW(nullptr));
-    void *cameraAddDrop = reinterpret_cast<void *>(moduleBase + (CAMERA_ADD_DROP_ADDRESS - 0x00400000));
+    void *cameraAddDrop = CSigScan(nullptr).Scan(CAMERA_ADD_DROP_SIGNATURE);
+    if (!cameraAddDrop)
+    {
+        std::cout << "[webdriver] Camera::addDrop not found, skipping drop hooks..." << std::endl;
+        return;
+    }
+
+    std::cout << "[webdriver] Camera::addDrop found at " << cameraAddDrop << std::endl;
 
     cameraAddDropHook = HookFactory::install(cameraAddDrop, &cameraAddDropHandler);
 }

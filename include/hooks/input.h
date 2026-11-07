@@ -4,6 +4,7 @@
 #include <HookLib.h>
 #include <windowsx.h>
 #include <hooks/shared.h>
+#include <scanning/scanner.h>
 
 using PeekMessageAFn = decltype(&PeekMessageA);
 inline HookHolder<PeekMessageAFn> peekMessageAHook;
@@ -100,9 +101,32 @@ inline BOOL WINAPI setCursorPosHandler(int x, int y)
     return setCursorPosHook.call(x, y);
 }
 
+// Polar Golfer's mouse event handler (0x00422739) passes the 640x480 event coordinates straight to the cursor sprite,
+// but the sprite is positioned in actual pixels lol
+constexpr MemorySignature GOLF_CURSOR_SET_POSITION_SIGNATURE = {
+    "\x53\x56\xD9\x44\x24\x10\x57\x8B\xF9\x8B\xB7\x80\x00\x00\x00\x8B\x1E\xE8\x00\x00\x00\x00\xD9\x44\x24\x10\x50\xE8\x00\x00\x00\x00\x50\x56\xFF\x93\xE0\x00\x00\x00",
+    "xxxxxxxxxxxxxxxxxx????xxxxxx????xxxxxxxx",
+    40,
+};
+
+using SpriteSetPositionFn = void(__fastcall *)(void *sprite, void *edx, float x, float y);
+inline HookHolder<SpriteSetPositionFn> golfCursorSetPositionHook;
+
+inline void __fastcall golfCursorSetPositionHandler(void *sprite, void *edx, float x, float y)
+{
+    golfCursorSetPositionHook.call(sprite, edx, static_cast<float>(x * scaleX()), static_cast<float>(y * scaleY()));
+}
+
 inline void installInputHooks()
 {
     peekMessageAHook = HookFactory::install(lookupModule(L"user32.dll"), "PeekMessageA", &peekMessageAHandler);
     getCursorPosHook = HookFactory::install(lookupModule(L"user32.dll"), "GetCursorPos", &getCursorPosHandler);
     setCursorPosHook = HookFactory::install(lookupModule(L"user32.dll"), "SetCursorPos", &setCursorPosHandler);
+
+    void *cursorSetPosition = CSigScan(nullptr).Scan(GOLF_CURSOR_SET_POSITION_SIGNATURE);
+    if (cursorSetPosition)
+    {
+        std::cout << "[input] Polar Golfer cursorSetPosition found at " << cursorSetPosition << std::endl;
+        golfCursorSetPositionHook = HookFactory::install(cursorSetPosition, &golfCursorSetPositionHandler);
+    }
 }

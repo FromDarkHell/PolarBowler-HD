@@ -2,11 +2,20 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Debug Game (x86)",
+            "name": "Debug Polar Bowler Classic",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "C:\\Games\\Polar Bowler Classic\\Polar Bowler Classic.exe",
             "cwd": "C:\\Games\\Polar Bowler Classic",
+            "preLaunchTask": "Deploy DLL",
+            "console": "newExternalWindow"
+        },
+        {
+            "name": "Debug Golf",
+            "type": "cppvsdbg",
+            "request": "launch",
+            "program": "C:\\WildTangent\\Apps\\GameChannel\\Games\\169E7C03-35E3-4E8A-855F-225246CE3E5E\\golf.exe",
+            "cwd": "C:\\WildTangent\\Apps\\GameChannel\\Games\\169E7C03-35E3-4E8A-855F-225246CE3E5E",
             "preLaunchTask": "Deploy DLL",
             "console": "newExternalWindow"
         },

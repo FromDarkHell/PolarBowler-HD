@@ -1,26 +1,43 @@
 param(
     [Parameter(Mandatory)] [string] $DllPath,
-    [Parameter(Mandatory)] [string] $GameDirectory,
-    [switch] $Launch
+    [string] $Launch
 )
 
 $ErrorActionPreference = 'Stop'
 
-$gameExecutable = Join-Path $GameDirectory 'Polar Bowler Classic.exe'
-$pluginsDirectory = Join-Path $GameDirectory 'Plugins'
-
-# The loaded DLL is locked by the game, close it before overwriting.
-$runningGame = Get-Process 'Polar Bowler Classic' -ErrorAction SilentlyContinue
-if ($runningGame) {
-    Write-Host 'Closing running game...'
-    $runningGame | Stop-Process -Force
-    $runningGame | Wait-Process
+$games = [ordered]@{
+    'Polar Bowler Classic' = 'C:\Games\Polar Bowler Classic\Polar Bowler Classic.exe'
+    'Polar Golfer'         = 'C:\WildTangent\Apps\GameChannel\Games\169E7C03-35E3-4E8A-855F-225246CE3E5E\golf.exe'
 }
 
-Copy-Item -Force -LiteralPath $DllPath -Destination $pluginsDirectory
-Write-Host "Deployed $(Split-Path $DllPath -Leaf) to $pluginsDirectory..."
+if ($Launch -and -not $games.Contains($Launch)) {
+    throw "Unknown game '$Launch'. Known games: $($games.Keys -join ', ')"
+}
+
+foreach ($gameName in $games.Keys) {
+    $gameExecutable = $games[$gameName]
+    $gameDirectory = Split-Path $gameExecutable -Parent
+    $pluginsDirectory = Join-Path $gameDirectory 'Plugins'
+
+    if (-not (Test-Path -LiteralPath $pluginsDirectory)) {
+        Write-Warning "Skipping $gameName, $pluginsDirectory does not exist."
+        continue
+    }
+
+    # The loaded DLL is locked by the game, close it before overwriting.
+    $runningGame = Get-Process ([IO.Path]::GetFileNameWithoutExtension($gameExecutable)) -ErrorAction SilentlyContinue
+    if ($runningGame) {
+        Write-Host "Closing $gameName..."
+        $runningGame | Stop-Process -Force
+        $runningGame | Wait-Process
+    }
+
+    Copy-Item -Force -LiteralPath $DllPath -Destination $pluginsDirectory
+    Write-Host "Deployed $(Split-Path $DllPath -Leaf) to $pluginsDirectory..."
+}
 
 if ($Launch) {
-    Start-Process -FilePath $gameExecutable -WorkingDirectory $GameDirectory
-    Write-Host 'Started game...'
+    $gameExecutable = $games[$Launch]
+    Start-Process -FilePath $gameExecutable -WorkingDirectory (Split-Path $gameExecutable -Parent)
+    Write-Host "Started $Launch..."
 }
