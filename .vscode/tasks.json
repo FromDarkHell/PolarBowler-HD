@@ -53,7 +53,11 @@
       "id": "game",
       "type": "pickString",
       "description": "Game to launch",
-      "options": ["Polar Bowler Classic", "Polar Golfer"],
+      "options": [
+        "Polar Bowler Classic",
+        "Polar Golfer",
+        "Polar Golfer - Pineapple Cup"
+      ],
       "default": "Polar Bowler Classic"
     }
   ]

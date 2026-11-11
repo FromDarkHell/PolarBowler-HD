@@ -6,8 +6,9 @@ param(
 $ErrorActionPreference = 'Stop'
 
 $games = [ordered]@{
-    'Polar Bowler Classic' = 'C:\Games\Polar Bowler Classic\Polar Bowler Classic.exe'
-    'Polar Golfer'         = 'C:\WildTangent\Apps\GameChannel\Games\169E7C03-35E3-4E8A-855F-225246CE3E5E\golf.exe'
+    'Polar Bowler Classic'         = 'C:\Games\Polar Bowler Classic\Polar Bowler Classic.exe'
+    'Polar Golfer'                 = 'C:\WildTangent\Apps\GameChannel\Games\169E7C03-35E3-4E8A-855F-225246CE3E5E\golf.exe'
+    'Polar Golfer - Pineapple Cup' = 'C:\WildTangent\Apps\GameChannel\Games\PineappleCup\golf.exe'
 }
 
 if ($Launch -and -not $games.Contains($Launch)) {
